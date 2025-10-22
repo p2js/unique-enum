@@ -15,7 +15,7 @@
  */
 export function Enum<T extends string>(...variants: T[]) {
     let construct = true;
-    class Value<V extends T = T> {
+    class Value<V extends T> {
         private constructor(readonly variant: V) {
             if (!construct) throw Error('Cannot instantiate Enum variants after initlialisation');
         }
@@ -37,17 +37,18 @@ export function Enum<T extends string>(...variants: T[]) {
     return Object.freeze(Value as Enum);
 }
 /**
- * Type representing the variants of an `Enum`.
+ * Type representing all the variants of an `Enum`.
  * 
  * ```ts
  * const Direction = Enum("N", "E", "S", "W");
  * 
- * function isNorth(d: Variant<typeof Direction>) {
+ * function isNorth(d: Variant<typeof Direction>): d is typeof Direction.N {
  *     return d == Direction.N;
  * };
  * 
- * isNorth(Direction.N);
- * isNorth({}); // Error: Argument of type '{}' is not assignable to ...
+ * isNorth(Direction.N); // true
+ * isNorth(Direction.S); // false
+ * isNorth({});          // Error: Argument of type '{}' is not assignable to ...
  * ```
  */
 export type Variant<E extends Record<string, any>> = E[keyof E];
