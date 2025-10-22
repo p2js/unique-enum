@@ -83,7 +83,9 @@ If you want to use variants of a specific enum as an object property or function
 ```ts
 import { Variant } from "unique-enum";
 
-function is_north(d: Variant<typeof Direction>) { return d == Direction.North; }
+function is_north(d: Variant<typeof Direction>): d is typeof Direction.North { 
+    return d == Direction.North; 
+}
 
 is_north(Direction.North); // true
 is_north(Direction.South); // false

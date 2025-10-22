@@ -15,8 +15,8 @@
  */
 export function Enum<T extends string>(...variants: T[]) {
     let construct = true;
-    class Value {
-        private constructor(readonly variant: T) {
+    class Value<V extends T = T> {
+        private constructor(readonly variant: V) {
             if (!construct) throw Error('Cannot instantiate Enum variants after initlialisation');
         }
         toString() {
@@ -33,7 +33,7 @@ export function Enum<T extends string>(...variants: T[]) {
         (Value as any)[variant] = Object.freeze(new (Value as any)(variant));
     }
     construct = false;
-    type Enum = { readonly [K in T]: Value };
+    type Enum = { readonly [V in T]: Value<V> };
     return Object.freeze(Value as Enum);
 }
 /**
