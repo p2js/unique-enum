@@ -1,6 +1,6 @@
 {
   "name": "unique-enum",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Runtime-safe alternative to typescript enums that maintains type safety and ergonomics",
   "repository": {
     "type": "git",

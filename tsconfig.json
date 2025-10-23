@@ -5,7 +5,9 @@
         "lib": [
             "ESNext"
         ],
+        "allowJs": true,
         "outDir": "lib",
-        "declaration": true
+        "declaration": true,
+        "stripInternal": true,
     }
 }
