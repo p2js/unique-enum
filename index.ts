@@ -17,7 +17,7 @@ declare const enumMember: unique symbol;
 export function Enum<T extends string>(...variants: T[]) {
     let construct = true;
     class Value<V extends T> {
-        [enumMember]: void;
+        declare [enumMember]: void;
         private constructor(readonly variant: V) {
             if (!construct) throw Error('Cannot instantiate Enum variants after initlialisation');
         }

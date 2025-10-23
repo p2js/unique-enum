@@ -72,7 +72,7 @@ These invariants make unique enums more resilient at runtime and when used from 
 
 ### Debugging enum values
 
-Unique enums maintaining type information at runtime also makes debugging easier compared to TypeScript's implementation.
+Since unique enums maintain type information at runtime, inspecting them makes debugging easier compared to TypeScript's implementation.
 
 ```js
 console.log(Direction.North) // prints: Value { variant: 'North' }
@@ -98,7 +98,7 @@ Unfortunately, unlike TypeScript enums, unique enums cannot autofill `switch` st
 
 ### Limitation of TypeScript's Type System
 
-A much bigger limtation of unique enums is that variants of different enums with identical string names are able to be assigned to each other:
+A much bigger limtation of unique enums is that variants of different enums with identical string names are considered compatible:
 
 ```ts
 let E1 = Enum("A");
