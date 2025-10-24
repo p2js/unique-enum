@@ -1,6 +1,6 @@
 {
-  "name": "unique-enum",
-  "version": "0.1.4",
+  "name": "unique-enum-compiler",
+  "version": "0.1.0",
   "description": "Runtime-safe alternative to typescript enums that maintains type safety and ergonomics",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc compile/transformer.ts --module esnext --target esnext"
   },
   "keywords": [
     "enum",
@@ -25,5 +25,11 @@
   ],
   "author": "Alfio (https://github.com/p2js)",
   "license": "ISC",
-  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab"
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1"
+  }
 }

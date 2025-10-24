@@ -1,110 +1,69 @@
-# unique-enum
+# Experimental unique-enum compiler
 
-A runtime-safe alternative to typescript enums that maintains ergonomics.
+This is a replacement compiler for typescript source code that transforms typescript enums into modified `unique-enum` enums:
 
-> ⚠️ Not fully type safe in TypeScript due to a limitation of the type system (See [Last Section](#limitation-of-typescripts-type-system))
-
-```js
-import { Enum } from 'unique-enum';      // ESM
-const { Enum } = require('unique-enum'); // CommonJS
-
-const Direction = Enum(
-    'North',
-    'East',
-    'South',
-    'West'
-);
+```ts
+// source.ts
+enum IP {
+    V4,
+    V6
+}
 ```
-
-## Installation
-
-You can install unique-enum from [npm](https://npmjs.com/package/unique-enum):
-
-```sh
-npm install unique-enum
+```js
+// source.js
+const IP = ((() => {
+    let construct_1 = true;
+    class IP {
+        static V4 = Object.freeze(new IP("V4"));
+        static V6 = Object.freeze(new IP("V6"));
+        constructor(variant) {
+            if (!construct_1) {
+                throw new Error("Cannot instantiate IP variants after initialisation");
+            }
+            this.variant = variant;
+        }
+        toString() {
+            return `IP(${this.variant})`;
+        }
+    }
+    construct_1 = false;
+    return Object.freeze(IP);
+})());
 ```
 
 ## Usage
 
-An enum can be declared as in the first example. The `Enum` function returns a class with its members as its only possible instances. Its members will autocomplete like normal enum variants (eg. typing `Direction.` will show `North`, `East` etc. after declaration.) 
+Execute `compile/index.js` in the same directory as your project's `tsconfig` and it will compile the program like `tsc`, except transforming any enums as above.
 
-Each variant's string representation can be accessed using the `variant` property or by calling `toString`:
+If you want to modify the enum transformer, build the source file with
+`npm run build`. There will be errors, but they do not affect functionality and can be ignored.
 
-```js
-console.log(Direction.North.variant) // prints: 'North'
-```
+## Advantages
 
-Enums also have convenient string representations and will work normally with `Object.keys`, iterators etc:
-
-```js
-console.log(Direction.toString()); 
-// prints: Enum { North, East, South, West }
-console.log(Object.keys(Direction)); 
-// prints: [ 'North', 'East', 'South', 'West' ]
-
-for(let direction of Direction) { /* iterates over the variants */ }
-```
-
-### Type Invariants
-
-A unique enum `enum` has the following invariants for the lifetime of the program:
-
-- Variants will only be equal to themselves and no other object or primitive.
-- Variants are the sole objects for which `instanceof enum` will be true.
-- After declaration, no new variants can be constructed or assigned, and variants cannot be changed or destroyed.
-
-```js
-new Direction('northwest');       // Error
-Direction.NorthWest = {};         // Error
-Direction.North = 0;              // Error
-Direction.North.variant = 'South' // Error
-delete Direction.North;           // Error
-
-function is_north(d) {
-    return ( 
-        d instanceof Direction    // Only true for the 4 Direction instances
-        && d == Direction.North   // Only true for Direction.North
-    );
-}
-```
-
-These invariants make unique enums more resilient at runtime and when used from vanilla JavaScript.
-
-### Debugging enum values
-
-Since unique enums maintain type information at runtime, inspecting them makes debugging easier compared to TypeScript's implementation.
-
-```js
-console.log(Direction.North) // prints: Value { variant: 'North' }
-```
-
-### Unique Enums + TypeScript
-
-If you want to use variants of a specific enum as an object property or function argument, you can use the provided `Variant` type.
+This compiler reuses typescript's enum syntax, fixing the biggest flaw in using unique enums in typescript: Overlapping variants can no longer be assigned to each other.
 
 ```ts
-import { Variant } from 'unique-enum';
-
-function is_north(d: Variant<typeof Direction>): d is typeof Direction.North { 
-    return d == Direction.North; 
-}
-
-is_north(Direction.North);     // true
-is_north(Direction.South);     // false
-isNorth({ variant: 'North' }); // Error
+enum A { V4 };
+let a: IP.V4 = A.V4 // Error
 ```
 
-Unfortunately, unlike TypeScript enums, unique enums cannot autofill `switch` statements at runtime, and hacks like a `default` arm that returns `never` will not work to check for exhaustiveness. This is because the type checker is unable to check for exhaustiveness of types that are not unions of literal types.
-
-### Limitation of TypeScript's Type System
-
-A much bigger limtation of unique enums is that variants of different enums with identical string names are considered compatible:
+Additionally, since the enum transformer gets access to the class name, the class can be named after the enum, providing additional runtime debug information.
 
 ```ts
-let E1 = Enum("A");
-let E2 = Enum("A");
-
-let d1: typeof E1.A = E2.A; // No error even though there should be
+console.log(IP.V4); // IP { variant: 'V4' }
+console.log(IP);    // [class IP] { V4: ..., V6: ...}
 ```
 
-This is because the type system is unable to distinguish between different instances of classes returned from a function despite having non-overlapping private members, an issue which is considered a [design limitation](https://github.com/microsoft/TypeScript/issues/56146).
+## Disadvantages
+
+However, the type system still considers the enum variants as equivalent to their number literal types. This means the below code will still not error, and now has incorrect semantics:
+
+```ts
+let b: IP.V4 = 0; // Should error, but doesn't
+
+if(b == IP.V4) {
+    // TypeScript thinks this block will run, but it won't
+} 
+```
+
+Because of this major disadvantage, it's recommended to just use standard unique enums, but this compiler exists as an alternative option.
