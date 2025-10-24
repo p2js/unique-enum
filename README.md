@@ -1,8 +1,6 @@
 # unique-enum
 
-A runtime-safe alternative to typescript enums that maintains ergonomics.
-
-> ⚠️ Not fully type safe in TypeScript due to a limitation of the type system (See [Last Section](#limitation-of-typescripts-type-system))
+A runtime-safe alternative to TypeScript enums that maintains type safety and ergonomics.
 
 ```js
 import { Enum } from 'unique-enum';      // ESM
@@ -47,9 +45,9 @@ for(let direction of Direction) { /* iterates over the variants */ }
 
 ### Type Invariants
 
-A unique enum `enum` has the following invariants for the lifetime of the program:
+A unique `enum` guarantees the following invariants throughout the program:
 
-- Variants will only be equal to themselves and no other object or primitive.
+- Each variant will only be equal to itself and no other object or primitive.
 - Variants are the sole objects for which `instanceof enum` will be true.
 - After declaration, no new variants can be constructed or assigned, and variants cannot be changed or destroyed.
 
@@ -98,13 +96,22 @@ Unfortunately, unlike TypeScript enums, unique enums cannot autofill `switch` st
 
 ### Limitation of TypeScript's Type System
 
-A much bigger limtation of unique enums is that variants of different enums with identical string names are considered compatible:
+TypeScript's type system has a limitation when dealing with unique enum variants: For two enums `E1` and `E2`, a variant of `E1` is considered compatible with a variant of `E2` if their names are the same, and the variant names of `E1` form a subset of those in `E2`.
 
 ```ts
-let E1 = Enum("A");
-let E2 = Enum("A");
+const SoftwareVersion = Enum("V1", "V4", "V6");
+const IP = Enum("V4", "V6"); 
 
-let d1: typeof E1.A = E2.A; // No error even though there should be
+let incompatible: typeof SoftwareVersion.V4 = IP.V4; // Assignment is allowed despite the types being incompatible
 ```
 
-This is because the type system is unable to distinguish between different instances of classes returned from a function despite having non-overlapping private members, an issue which is considered a [design limitation](https://github.com/microsoft/TypeScript/issues/56146).
+Note that the assignment will instead fail if `IP` contains any variant name that is not also a variant name of `SoftwareVersion`, so this should not be a problem in practice.
+
+This flaw is due to the type system's inability to distinguish between different instances of classes returned from a function even if they have non-overlapping private members, an issue which is considered a [design limitation](https://github.com/microsoft/TypeScript/issues/56146).
+
+However, note that TypeScript enums are themselves not fully type safe. While they do not suffer from this specific flaw, enum variant types are considered equivalent to their literal types, so the following is valid code:
+
+```ts
+enum IP { V4, V6 }
+let literal: IP.V4 = 0; // No error even though 0 is not an IP
+```
