@@ -1,4 +1,5 @@
-declare const enumMember: unique symbol;
+declare const enumVariants: unique symbol;
+type Enum<T extends string> = { readonly [V in T]: { variant: V, [enumVariants]: T } };
 /**
  * Defines a type and runtime-safe enum type with unique variants.
  * 
@@ -17,7 +18,6 @@ declare const enumMember: unique symbol;
 export function Enum<T extends string>(...variants: T[]) {
     let construct = true;
     class Value<V extends T> {
-        declare [enumMember]: T;
         private constructor(readonly variant: V) {
             if (!construct) throw Error('Cannot instantiate Enum variants after initlialisation');
         }
@@ -35,8 +35,7 @@ export function Enum<T extends string>(...variants: T[]) {
         (Value as any)[variant] = Object.freeze(new (Value as any)(variant));
     }
     construct = false;
-    type Enum = { readonly [V in T]: Value<V> };
-    return Object.freeze(Value as Enum);
+    return Object.freeze(Value) as Enum<T>;
 }
 /**
  * Type representing all the variants of an `Enum`.
