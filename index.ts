@@ -30,6 +30,9 @@ export function Enum<T extends string>(...variants: T[]) {
         static [Symbol.iterator]() {
             return Object.values(this)[Symbol.iterator]();
         }
+        static [Symbol.hasInstance](x: any) {
+            return Object.values(Value).some(y => y === x);
+        }
     }
     for (const variant of variants) {
         (Value as any)[variant] = Object.freeze(new (Value as any)(variant));
